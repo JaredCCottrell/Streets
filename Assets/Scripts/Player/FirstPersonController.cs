@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Streets.Input;
 
 namespace Streets.Player
 {
@@ -23,7 +24,7 @@ namespace Streets.Player
         [SerializeField] private float staminaDrainRate = 20f;
         [SerializeField] private float staminaRegenRate = 10f;
         [SerializeField] private float staminaRegenDelay = 1f;
-        [SerializeField] private float minStaminaToSprint = 10f;
+        [SerializeField] [Range(0f, 1f)] private float minStaminaPercentToSprint = 0.25f;
 
         // Components
         private CharacterController characterController;
@@ -165,7 +166,7 @@ namespace Streets.Player
                     currentStamina = Mathf.Min(currentStamina, maxStamina);
                 }
 
-                if (!canSprint && currentStamina >= minStaminaToSprint)
+                if (!canSprint && currentStamina >= maxStamina * minStaminaPercentToSprint)
                 {
                     canSprint = true;
                 }
