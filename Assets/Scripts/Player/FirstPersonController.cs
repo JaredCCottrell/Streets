@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Streets.Input;
+using Streets.Survival;
 
 namespace Streets.Player
 {
@@ -25,6 +26,10 @@ namespace Streets.Player
         [SerializeField] private float staminaRegenRate = 10f;
         [SerializeField] private float staminaRegenDelay = 1f;
         [SerializeField] [Range(0f, 1f)] private float minStaminaPercentToSprint = 0.25f;
+
+        [Header("Survival References")]
+        [SerializeField] private HungerSystem hungerSystem;
+        [SerializeField] private ThirstSystem thirstSystem;
 
         // Components
         private CharacterController characterController;
@@ -144,6 +149,10 @@ namespace Streets.Player
         private void HandleStamina()
         {
             bool isActivelySprinting = isSprinting && IsMoving && canSprint;
+
+            // Notify survival systems of sprint state
+            hungerSystem?.SetSprinting(isActivelySprinting);
+            thirstSystem?.SetSprinting(isActivelySprinting);
 
             if (isActivelySprinting)
             {
