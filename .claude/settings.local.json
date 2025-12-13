@@ -5,7 +5,11 @@
       "mcp__github__create_repository",
       "Bash(git init:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "mcp__mcp-unity__recompile_scripts"
     ]
   }
 }
