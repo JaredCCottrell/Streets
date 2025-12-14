@@ -1,6 +1,6 @@
 # Streets - Development Session Status
 
-**Last Updated:** December 13, 2025
+**Last Updated:** December 14, 2025
 
 ---
 
@@ -18,6 +18,7 @@
 - [x] Inventory system (slot-based, stacking, consumables/equipment/key items)
 - [x] Hotbar system (4 quick-use slots, keys 1-4)
 - [x] Inventory UI (Tab to toggle, context menu, item details)
+- [x] Item pickup system (E key or auto-pickup, with bobbing animation)
 
 ### Next Up
 - [ ] Create procedural road generation system
@@ -26,7 +27,6 @@
 - [ ] Create event/encounter system (harmless + harmful)
 - [ ] Implement checkpoint system for Normal mode
 - [ ] Set up eerie atmosphere (lighting, fog, skybox)
-- [ ] Create item pickup system for world items
 
 ---
 
@@ -51,7 +51,8 @@ Assets/
 │   │   │   └── KeyItemData.cs
 │   │   ├── InventorySlot.cs
 │   │   ├── InventorySystem.cs
-│   │   └── HotbarSystem.cs
+│   │   ├── HotbarSystem.cs
+│   │   └── ItemPickup.cs
 │   ├── UI/
 │   │   ├── StaminaUI.cs
 │   │   ├── HealthUI.cs

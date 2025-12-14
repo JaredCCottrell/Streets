@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using TMPro;
 using Streets.Inventory;
 
@@ -252,7 +253,7 @@ namespace Streets.UI
             if (contextMenu != null)
             {
                 contextMenu.SetActive(true);
-                contextMenu.transform.position = UnityEngine.Input.mousePosition;
+                contextMenu.transform.position = Mouse.current.position.ReadValue();
             }
 
             // Configure buttons based on item type
