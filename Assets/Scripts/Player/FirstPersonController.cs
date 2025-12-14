@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Streets.Input;
 using Streets.Survival;
+using Streets.Inventory;
+using Streets.UI;
 
 namespace Streets.Player
 {
@@ -30,6 +32,11 @@ namespace Streets.Player
         [Header("Survival References")]
         [SerializeField] private HungerSystem hungerSystem;
         [SerializeField] private ThirstSystem thirstSystem;
+
+        [Header("Inventory References")]
+        [SerializeField] private InventorySystem inventorySystem;
+        [SerializeField] private HotbarSystem hotbarSystem;
+        [SerializeField] private InventoryUI inventoryUI;
 
         // Components
         private CharacterController characterController;
@@ -100,11 +107,52 @@ namespace Streets.Player
 
         private void Update()
         {
+            HandleInventoryInput();
+
+            // Skip movement/look when inventory is open
+            if (inventoryUI != null && inventoryUI.IsOpen)
+            {
+                return;
+            }
+
             HandleGroundCheck();
             HandleLook();
             HandleMovement();
             HandleStamina();
             ApplyGravity();
+        }
+
+        private void HandleInventoryInput()
+        {
+            // Toggle inventory with Tab
+            if (Keyboard.current != null && Keyboard.current.tabKey.wasPressedThisFrame)
+            {
+                inventoryUI?.Toggle();
+            }
+
+            // Hotbar keys 1-4 (only when inventory is closed)
+            if (inventoryUI == null || !inventoryUI.IsOpen)
+            {
+                if (Keyboard.current != null)
+                {
+                    if (Keyboard.current.digit1Key.wasPressedThisFrame)
+                    {
+                        hotbarSystem?.UseHotbarSlot(0);
+                    }
+                    else if (Keyboard.current.digit2Key.wasPressedThisFrame)
+                    {
+                        hotbarSystem?.UseHotbarSlot(1);
+                    }
+                    else if (Keyboard.current.digit3Key.wasPressedThisFrame)
+                    {
+                        hotbarSystem?.UseHotbarSlot(2);
+                    }
+                    else if (Keyboard.current.digit4Key.wasPressedThisFrame)
+                    {
+                        hotbarSystem?.UseHotbarSlot(3);
+                    }
+                }
+            }
         }
 
         private void HandleGroundCheck()

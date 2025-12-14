@@ -1,6 +1,6 @@
 # Streets - Development Session Status
 
-**Last Updated:** December 12, 2025
+**Last Updated:** December 13, 2025
 
 ---
 
@@ -15,15 +15,18 @@
 - [x] Thirst system (depletes over time, dehydration damage)
 - [x] Sanity system (placeholder - event-driven, insanity damage)
 - [x] UI components for all survival meters
+- [x] Inventory system (slot-based, stacking, consumables/equipment/key items)
+- [x] Hotbar system (4 quick-use slots, keys 1-4)
+- [x] Inventory UI (Tab to toggle, context menu, item details)
 
 ### Next Up
-- [ ] Design inventory system architecture
 - [ ] Create procedural road generation system
 - [ ] Build modular road segment prefabs
 - [ ] Implement chunk loading/unloading for infinite road
 - [ ] Create event/encounter system (harmless + harmful)
 - [ ] Implement checkpoint system for Normal mode
 - [ ] Set up eerie atmosphere (lighting, fog, skybox)
+- [ ] Create item pickup system for world items
 
 ---
 
@@ -40,12 +43,24 @@ Assets/
 │   │   ├── ThirstSystem.cs
 │   │   ├── SanitySystem.cs
 │   │   └── DamageZone.cs
+│   ├── Inventory/
+│   │   ├── Items/
+│   │   │   ├── ItemData.cs
+│   │   │   ├── ConsumableData.cs
+│   │   │   ├── EquipmentData.cs
+│   │   │   └── KeyItemData.cs
+│   │   ├── InventorySlot.cs
+│   │   ├── InventorySystem.cs
+│   │   └── HotbarSystem.cs
 │   ├── UI/
 │   │   ├── StaminaUI.cs
 │   │   ├── HealthUI.cs
 │   │   ├── HungerUI.cs
 │   │   ├── ThirstUI.cs
-│   │   └── SanityUI.cs
+│   │   ├── SanityUI.cs
+│   │   ├── InventoryUI.cs
+│   │   ├── InventorySlotUI.cs
+│   │   └── HotbarUI.cs
 │   └── Input/
 │       └── InputSystem_Actions.cs (generated)
 └── Scenes/
@@ -57,6 +72,7 @@ Documentation/
 ├── devlog-003-player-controller.md
 ├── devlog-004-health-system.md
 ├── devlog-005-survival-systems.md
+├── devlog-006-inventory-system.md
 └── SESSION-STATUS.md (this file)
 ```
 
@@ -84,6 +100,14 @@ Documentation/
 | Thirst | Depletes over time (2.5x while sprinting) |
 | Sanity | Event-driven (creepy encounters) |
 
+**Inventory:**
+| Feature | Details |
+|---------|---------|
+| Slots | 12 (configurable) |
+| Stacking | Consumables stack (max 5), equipment/keys don't |
+| Hotbar | 4 slots, keys 1-4 for quick use |
+| Item Types | Consumables, Equipment, Key Items |
+
 **Threats:** Mix of harmless atmospheric scares and dangerous encounters
 
 ---
@@ -99,15 +123,20 @@ If starting fresh or verifying setup:
 - [ ] HungerSystem script
 - [ ] ThirstSystem script
 - [ ] SanitySystem script
+- [ ] InventorySystem script
+- [ ] HotbarSystem script
 - [ ] Child camera at eye height
 
 ### Component References
 - [ ] FirstPersonController → Camera Transform assigned
 - [ ] FirstPersonController → Ground Mask set to "Ground" layer
 - [ ] FirstPersonController → HungerSystem & ThirstSystem assigned
+- [ ] FirstPersonController → InventorySystem, HotbarSystem, InventoryUI assigned
 - [ ] HungerSystem → HealthSystem assigned
 - [ ] ThirstSystem → HealthSystem assigned
 - [ ] SanitySystem → HealthSystem assigned
+- [ ] InventorySystem → All survival systems assigned
+- [ ] HotbarSystem → InventorySystem assigned
 
 ### Ground
 - [ ] "Ground" layer created
@@ -119,6 +148,8 @@ If starting fresh or verifying setup:
 - [ ] HungerUI with fill bar
 - [ ] ThirstUI with fill bar
 - [ ] SanityUI with fill bar
+- [ ] HotbarUI with 4 slot displays
+- [ ] InventoryUI panel (starts disabled)
 
 ---
 
