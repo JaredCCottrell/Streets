@@ -6,7 +6,8 @@ using Streets.Inventory;
 
 namespace Streets.UI
 {
-    public class InventorySlotUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+    public class InventorySlotUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler,
+        IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
     {
         [Header("UI Elements")]
         [SerializeField] private Image background;
@@ -17,6 +18,7 @@ namespace Streets.UI
         [SerializeField] private Color normalColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);
         [SerializeField] private Color hoverColor = new Color(0.3f, 0.3f, 0.3f, 0.9f);
         [SerializeField] private Color selectedColor = new Color(0.4f, 0.4f, 0.2f, 0.9f);
+        [SerializeField] private Color dropTargetColor = new Color(0.2f, 0.4f, 0.2f, 0.9f);
 
         // State
         private int slotIndex;
@@ -24,9 +26,11 @@ namespace Streets.UI
         private InventorySlot currentSlot;
         private bool isHovered;
         private bool isSelected;
+        private bool isDropTarget;
 
         public int SlotIndex => slotIndex;
         public InventorySlot CurrentSlot => currentSlot;
+        public Image Icon => icon;
 
         public void Initialize(int index, InventoryUI ui)
         {
@@ -82,11 +86,21 @@ namespace Streets.UI
             UpdateVisuals();
         }
 
+        public void SetDropTarget(bool dropTarget)
+        {
+            isDropTarget = dropTarget;
+            UpdateVisuals();
+        }
+
         private void UpdateVisuals()
         {
             if (background == null) return;
 
-            if (isSelected)
+            if (isDropTarget)
+            {
+                background.color = dropTargetColor;
+            }
+            else if (isSelected)
             {
                 background.color = selectedColor;
             }
@@ -126,6 +140,27 @@ namespace Streets.UI
             isHovered = false;
             UpdateVisuals();
             inventoryUI?.OnSlotHoverExit(slotIndex);
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (currentSlot == null || currentSlot.IsEmpty) return;
+            inventoryUI?.OnBeginDragSlot(slotIndex, eventData);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            inventoryUI?.OnDragSlot(eventData);
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            inventoryUI?.OnEndDragSlot(eventData);
+        }
+
+        public void OnDrop(PointerEventData eventData)
+        {
+            inventoryUI?.OnDropOnSlot(slotIndex, eventData);
         }
     }
 }

@@ -10,11 +10,15 @@ namespace Streets.UI
         [Header("References")]
         [SerializeField] private HotbarSystem hotbarSystem;
         [SerializeField] private InventorySystem inventorySystem;
+        [SerializeField] private InventoryUI inventoryUI;
 
         [Header("Slot UI Elements")]
+        [SerializeField] private HotbarSlotUIComponent[] slotComponents;
+
+        [Header("Legacy Slot UI (for backwards compatibility)")]
         [SerializeField] private HotbarSlotUI[] slotUIs;
 
-        [Header("Selection")]
+        [Header("Selection Colors")]
         [SerializeField] private Color normalColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);
         [SerializeField] private Color selectedColor = new Color(0.4f, 0.4f, 0.2f, 0.9f);
 
@@ -48,8 +52,22 @@ namespace Streets.UI
 
         private void Start()
         {
+            InitializeSlotComponents();
             RefreshAllSlots();
             UpdateSelection(hotbarSystem?.SelectedIndex ?? 0);
+        }
+
+        private void InitializeSlotComponents()
+        {
+            if (slotComponents == null || inventoryUI == null) return;
+
+            for (int i = 0; i < slotComponents.Length; i++)
+            {
+                if (slotComponents[i] != null)
+                {
+                    slotComponents[i].Initialize(i, inventoryUI);
+                }
+            }
         }
 
         private void OnInventorySlotChanged(int slotIndex, InventorySlot slot)
@@ -57,7 +75,7 @@ namespace Streets.UI
             // Check if this inventory slot is assigned to any hotbar slot
             if (hotbarSystem == null) return;
 
-            for (int i = 0; i < slotUIs.Length; i++)
+            for (int i = 0; i < GetSlotCount(); i++)
             {
                 if (hotbarSystem.GetInventorySlotIndex(i) == slotIndex)
                 {
@@ -73,32 +91,66 @@ namespace Streets.UI
 
         private void UpdateSlotUI(int hotbarIndex)
         {
-            if (hotbarIndex < 0 || hotbarIndex >= slotUIs.Length) return;
-            if (slotUIs[hotbarIndex] == null) return;
-
             ItemData item = hotbarSystem?.GetHotbarItem(hotbarIndex);
             int quantity = hotbarSystem?.GetHotbarItemQuantity(hotbarIndex) ?? 0;
 
-            slotUIs[hotbarIndex].SetItem(item, quantity);
+            // Try new component system first
+            if (slotComponents != null && hotbarIndex >= 0 && hotbarIndex < slotComponents.Length && slotComponents[hotbarIndex] != null)
+            {
+                slotComponents[hotbarIndex].SetItem(item, quantity);
+            }
+            // Fall back to legacy system
+            else if (slotUIs != null && hotbarIndex >= 0 && hotbarIndex < slotUIs.Length && slotUIs[hotbarIndex] != null)
+            {
+                slotUIs[hotbarIndex].SetItem(item, quantity);
+            }
         }
 
         private void UpdateSelection(int selectedIndex)
         {
-            for (int i = 0; i < slotUIs.Length; i++)
+            // Try new component system first
+            if (slotComponents != null && slotComponents.Length > 0)
             {
-                if (slotUIs[i] != null)
+                for (int i = 0; i < slotComponents.Length; i++)
                 {
-                    slotUIs[i].SetSelected(i == selectedIndex, selectedColor, normalColor);
+                    if (slotComponents[i] != null)
+                    {
+                        slotComponents[i].SetSelected(i == selectedIndex);
+                    }
+                }
+            }
+            // Fall back to legacy system
+            else if (slotUIs != null)
+            {
+                for (int i = 0; i < slotUIs.Length; i++)
+                {
+                    if (slotUIs[i] != null)
+                    {
+                        slotUIs[i].SetSelected(i == selectedIndex, selectedColor, normalColor);
+                    }
                 }
             }
         }
 
         private void RefreshAllSlots()
         {
-            for (int i = 0; i < slotUIs.Length; i++)
+            for (int i = 0; i < GetSlotCount(); i++)
             {
                 UpdateSlotUI(i);
             }
+        }
+
+        private int GetSlotCount()
+        {
+            if (slotComponents != null && slotComponents.Length > 0)
+            {
+                return slotComponents.Length;
+            }
+            if (slotUIs != null)
+            {
+                return slotUIs.Length;
+            }
+            return 0;
         }
     }
 

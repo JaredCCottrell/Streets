@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 using TMPro;
 using Streets.Inventory;
 
@@ -25,9 +26,14 @@ namespace Streets.UI
 
         [Header("Context Menu")]
         [SerializeField] private GameObject contextMenu;
+        [SerializeField] private ContextMenuBuilder contextMenuBuilder;
         [SerializeField] private Button useButton;
         [SerializeField] private Button dropButton;
         [SerializeField] private Button[] hotbarAssignButtons;
+
+        [Header("Drag and Drop")]
+        [SerializeField] private Canvas parentCanvas;
+        [SerializeField] private GameObject dragIconPrefab;
 
         // State
         private InventorySlotUI[] slotUIs;
@@ -35,7 +41,15 @@ namespace Streets.UI
         private int contextMenuSlotIndex = -1;
         private bool isOpen;
 
+        // Drag state
+        private int draggedSlotIndex = -1;
+        private GameObject dragIconInstance;
+        private RectTransform dragIconRect;
+        private Image dragIconImage;
+
         public bool IsOpen => isOpen;
+        public bool IsDragging => draggedSlotIndex >= 0;
+        public int DraggedSlotIndex => draggedSlotIndex;
 
         private void Awake()
         {
@@ -51,12 +65,19 @@ namespace Streets.UI
             {
                 detailsPanel.SetActive(false);
             }
+
+            // Find canvas if not assigned
+            if (parentCanvas == null)
+            {
+                parentCanvas = GetComponentInParent<Canvas>();
+            }
         }
 
         private void Start()
         {
             CreateSlotUIs();
             SetupContextMenu();
+            CreateDragIcon();
         }
 
         private void OnEnable()
@@ -90,8 +111,47 @@ namespace Streets.UI
             }
         }
 
+        private void CreateDragIcon()
+        {
+            if (dragIconPrefab != null)
+            {
+                dragIconInstance = Instantiate(dragIconPrefab, parentCanvas.transform);
+            }
+            else
+            {
+                // Create a simple drag icon dynamically
+                dragIconInstance = new GameObject("DragIcon");
+                dragIconInstance.transform.SetParent(parentCanvas.transform, false);
+
+                dragIconImage = dragIconInstance.AddComponent<Image>();
+                dragIconImage.raycastTarget = false;
+
+                dragIconRect = dragIconInstance.GetComponent<RectTransform>();
+                dragIconRect.sizeDelta = new Vector2(50, 50);
+            }
+
+            if (dragIconInstance != null)
+            {
+                dragIconRect = dragIconInstance.GetComponent<RectTransform>();
+                dragIconImage = dragIconInstance.GetComponent<Image>();
+                if (dragIconImage != null)
+                {
+                    dragIconImage.raycastTarget = false;
+                }
+                dragIconInstance.SetActive(false);
+            }
+        }
+
         private void SetupContextMenu()
         {
+            // Get buttons from builder if assigned
+            if (contextMenuBuilder != null)
+            {
+                useButton = contextMenuBuilder.useButton;
+                dropButton = contextMenuBuilder.dropButton;
+                hotbarAssignButtons = contextMenuBuilder.hotbarButtons;
+            }
+
             if (useButton != null)
             {
                 useButton.onClick.AddListener(OnUseClicked);
@@ -101,12 +161,33 @@ namespace Streets.UI
                 dropButton.onClick.AddListener(OnDropClicked);
             }
 
-            for (int i = 0; i < hotbarAssignButtons.Length; i++)
+            if (hotbarAssignButtons != null)
             {
-                int index = i;
-                if (hotbarAssignButtons[i] != null)
+                for (int i = 0; i < hotbarAssignButtons.Length; i++)
                 {
-                    hotbarAssignButtons[i].onClick.AddListener(() => OnAssignToHotbar(index));
+                    int index = i;
+                    if (hotbarAssignButtons[i] != null)
+                    {
+                        hotbarAssignButtons[i].onClick.AddListener(() => OnAssignToHotbar(index));
+                    }
+                }
+            }
+        }
+
+        private void SetButtonText(Button button, string text)
+        {
+            TextMeshProUGUI tmp = button.GetComponentInChildren<TextMeshProUGUI>();
+            if (tmp != null)
+            {
+                tmp.text = text;
+            }
+            else
+            {
+                // Fallback to legacy Text component
+                Text legacyText = button.GetComponentInChildren<Text>();
+                if (legacyText != null)
+                {
+                    legacyText.text = text;
                 }
             }
         }
@@ -158,6 +239,10 @@ namespace Streets.UI
             {
                 detailsPanel.SetActive(false);
             }
+
+            // Cancel any drag
+            CancelDrag();
+
             isOpen = false;
             selectedSlotIndex = -1;
 
@@ -177,6 +262,9 @@ namespace Streets.UI
 
         public void OnSlotLeftClick(int slotIndex)
         {
+            // Don't process click if we just finished a drag
+            if (IsDragging) return;
+
             HideContextMenu();
 
             if (selectedSlotIndex >= 0 && selectedSlotIndex != slotIndex)
@@ -197,6 +285,8 @@ namespace Streets.UI
 
         public void OnSlotRightClick(int slotIndex)
         {
+            if (IsDragging) return;
+
             ClearSelection();
 
             InventorySlot slot = inventorySystem?.GetSlot(slotIndex);
@@ -221,6 +311,113 @@ namespace Streets.UI
         {
             HideDetails();
         }
+
+        #region Drag and Drop
+
+        public void OnBeginDragSlot(int slotIndex, PointerEventData eventData)
+        {
+            InventorySlot slot = inventorySystem?.GetSlot(slotIndex);
+            if (slot == null || slot.IsEmpty) return;
+
+            HideContextMenu();
+            ClearSelection();
+
+            draggedSlotIndex = slotIndex;
+
+            // Setup drag icon
+            if (dragIconInstance != null && dragIconImage != null)
+            {
+                dragIconImage.sprite = slot.item?.icon;
+                dragIconImage.enabled = slot.item?.icon != null;
+                dragIconInstance.SetActive(true);
+                UpdateDragIconPosition(eventData);
+            }
+
+            // Dim the original slot
+            if (slotUIs[slotIndex]?.Icon != null)
+            {
+                var iconColor = slotUIs[slotIndex].Icon.color;
+                iconColor.a = 0.5f;
+                slotUIs[slotIndex].Icon.color = iconColor;
+            }
+        }
+
+        public void OnDragSlot(PointerEventData eventData)
+        {
+            if (!IsDragging) return;
+            UpdateDragIconPosition(eventData);
+        }
+
+        public void OnEndDragSlot(PointerEventData eventData)
+        {
+            if (!IsDragging) return;
+
+            // Restore original slot appearance
+            if (draggedSlotIndex >= 0 && draggedSlotIndex < slotUIs.Length && slotUIs[draggedSlotIndex]?.Icon != null)
+            {
+                var iconColor = slotUIs[draggedSlotIndex].Icon.color;
+                iconColor.a = 1f;
+                slotUIs[draggedSlotIndex].Icon.color = iconColor;
+            }
+
+            // Hide drag icon
+            if (dragIconInstance != null)
+            {
+                dragIconInstance.SetActive(false);
+            }
+
+            draggedSlotIndex = -1;
+        }
+
+        public void OnDropOnSlot(int targetSlotIndex, PointerEventData eventData)
+        {
+            if (!IsDragging) return;
+            if (draggedSlotIndex == targetSlotIndex) return;
+
+            // Swap the slots
+            inventorySystem?.SwapSlots(draggedSlotIndex, targetSlotIndex);
+        }
+
+        public void OnDropOnHotbar(int hotbarIndex)
+        {
+            if (!IsDragging) return;
+
+            // Assign the dragged inventory slot to the hotbar
+            hotbarSystem?.AssignSlot(hotbarIndex, draggedSlotIndex);
+        }
+
+        private void UpdateDragIconPosition(PointerEventData eventData)
+        {
+            if (dragIconRect == null || parentCanvas == null) return;
+
+            Vector2 position;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                parentCanvas.transform as RectTransform,
+                eventData.position,
+                parentCanvas.worldCamera,
+                out position);
+
+            dragIconRect.anchoredPosition = position;
+        }
+
+        private void CancelDrag()
+        {
+            if (draggedSlotIndex >= 0 && draggedSlotIndex < slotUIs.Length && slotUIs[draggedSlotIndex]?.Icon != null)
+            {
+                var iconColor = slotUIs[draggedSlotIndex].Icon.color;
+                iconColor.a = 1f;
+                slotUIs[draggedSlotIndex].Icon.color = iconColor;
+            }
+
+            if (dragIconInstance != null)
+            {
+                dragIconInstance.SetActive(false);
+            }
+
+            draggedSlotIndex = -1;
+        }
+
+        #endregion
 
         private void SelectSlot(int slotIndex)
         {
@@ -250,10 +447,27 @@ namespace Streets.UI
         {
             contextMenuSlotIndex = slotIndex;
 
-            if (contextMenu != null)
+            if (contextMenu != null && slotUIs != null && slotIndex >= 0 && slotIndex < slotUIs.Length)
             {
                 contextMenu.SetActive(true);
-                contextMenu.transform.position = Mouse.current.position.ReadValue();
+
+                // Position next to the slot
+                RectTransform slotRect = slotUIs[slotIndex].GetComponent<RectTransform>();
+                RectTransform menuRect = contextMenu.GetComponent<RectTransform>();
+
+                if (slotRect != null && menuRect != null)
+                {
+                    // Get slot's world corners
+                    Vector3[] slotCorners = new Vector3[4];
+                    slotRect.GetWorldCorners(slotCorners);
+
+                    // Position menu to the right of the slot
+                    Vector3 menuPosition = slotCorners[2]; // Top-right corner
+                    menuRect.position = menuPosition;
+
+                    // Adjust pivot so menu expands down and right from this point
+                    menuRect.pivot = new Vector2(0, 1);
+                }
             }
 
             // Configure buttons based on item type

@@ -15,6 +15,11 @@ namespace Streets.Inventory
         [SerializeField] private ThirstSystem thirstSystem;
         [SerializeField] private SanitySystem sanitySystem;
 
+        [Header("Item Dropping")]
+        [SerializeField] private ItemPickup dropItemPrefab;
+        [SerializeField] private Transform dropPoint;
+        [SerializeField] private float dropForce = 3f;
+
         [Header("Audio")]
         [SerializeField] private AudioSource audioSource;
 
@@ -279,12 +284,13 @@ namespace Streets.Inventory
             OnSlotChanged?.Invoke(indexB, slots[indexB]);
         }
 
-        public void DropItem(int slotIndex)
+        public void DropItem(int slotIndex, int quantityToDrop = -1)
         {
             if (slotIndex < 0 || slotIndex >= slots.Length) return;
             if (slots[slotIndex].IsEmpty) return;
 
             ItemData item = slots[slotIndex].item;
+            int currentQuantity = slots[slotIndex].quantity;
 
             // Key items typically can't be dropped
             if (item is KeyItemData keyItem && !keyItem.canDrop)
@@ -292,8 +298,49 @@ namespace Streets.Inventory
                 return;
             }
 
-            // TODO: Spawn dropped item in world
-            RemoveItemAt(slotIndex, slots[slotIndex].quantity);
+            // If quantityToDrop is -1 or greater than current, drop all
+            int dropAmount = (quantityToDrop < 0 || quantityToDrop > currentQuantity)
+                ? currentQuantity
+                : quantityToDrop;
+
+            // Spawn dropped item in world
+            SpawnDroppedItem(item, dropAmount);
+
+            // Remove from inventory
+            RemoveItemAt(slotIndex, dropAmount);
+        }
+
+        private void SpawnDroppedItem(ItemData item, int quantity)
+        {
+            if (dropItemPrefab == null || item == null) return;
+
+            // Determine spawn position
+            Vector3 spawnPosition;
+            Vector3 dropDirection;
+
+            if (dropPoint != null)
+            {
+                spawnPosition = dropPoint.position;
+                dropDirection = dropPoint.forward;
+            }
+            else
+            {
+                // Fallback: spawn in front of player
+                spawnPosition = transform.position + transform.forward * 1.5f + Vector3.up * 0.5f;
+                dropDirection = transform.forward;
+            }
+
+            // Instantiate the pickup
+            ItemPickup droppedItem = Instantiate(dropItemPrefab, spawnPosition, Quaternion.identity);
+            droppedItem.Initialize(item, quantity);
+
+            // Add force to throw the item
+            Rigidbody rb = droppedItem.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                Vector3 force = (dropDirection + Vector3.up * 0.5f).normalized * dropForce;
+                rb.AddForce(force, ForceMode.Impulse);
+            }
         }
 
         public void Clear()
