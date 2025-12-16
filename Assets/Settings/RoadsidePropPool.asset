@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e2670d26f59a9a4a8e10265eef7377e, type: 3}
+  m_Name: RoadsidePropPool
+  m_EditorClassIdentifier: Assembly-CSharp::Streets.Road.RoadPropPool
+  poolName: Roadside Props
+  props:
+  - {fileID: 11400000, guid: a14b68cf028a0ae4b813a92c5a18fd0f, type: 2}
+  - {fileID: 11400000, guid: 7151da914f7f9b14aa53a4d53c2000b6, type: 2}
+  - {fileID: 11400000, guid: a153739e5f4154946bd25bfa4f931f80, type: 2}
+  - {fileID: 11400000, guid: d6e5ed583850bd444a2cfb1d623dc89a, type: 2}
+  - {fileID: 11400000, guid: e2f7f3f2a0a8eb446b199a1db8b7a107, type: 2}
+  - {fileID: 11400000, guid: 8e5c1b101313a3544831ae3c24cf1802, type: 2}
+  - {fileID: 11400000, guid: c0764de33b5b9dd41acfe771d89c5b18, type: 2}
+  - {fileID: 11400000, guid: 25523e4c473d49542a8a7e95d5836728, type: 2}
+  spawnPointUsageChance: 0.5
+  maxPropsPerSegment: 4
+  minPropsPerSegment: 1
