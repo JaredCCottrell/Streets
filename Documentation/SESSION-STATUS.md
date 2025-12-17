@@ -1,6 +1,6 @@
 # Streets - Development Session Status
 
-**Last Updated:** December 15, 2025
+**Last Updated:** December 16, 2024
 
 ---
 
@@ -25,13 +25,36 @@
 - [x] Modular road segment prefabs with connection points
 - [x] Chunk loading/unloading for infinite road
 - [x] Road prop spawning system (randomized placement)
+- [x] **Road textures (Asphalt_material_14 for road surface)**
+- [x] **Road line material (RoadLineWhite.mat - URP white)**
+- [x] **Volumetric Fog system (Kronnect Volumetric Fog & Mist 2)**
+- [x] **Fog setup tools (VolumetricFog2Setup.cs editor window)**
+- [x] **Horror fog profile (HorrorFogProfile.asset)**
+- [x] **Skybox setup tools (SkyboxSetup.cs editor window)**
+- [x] **AllSky Free integration (Cold Night skybox)**
 
 ### Next Up
 - [ ] Create prop prefabs (guardrails, signs, abandoned cars, streetlights)
 - [ ] Create event/encounter system (harmless + harmful)
 - [ ] Implement checkpoint system for Normal mode
-- [ ] Set up eerie atmosphere (lighting, fog, skybox)
-- [ ] Add curve road segments for variety
+- [ ] Add curve road segments (SlightLeft, SlightRight prefabs)
+- [ ] Fine-tune fog density and visibility
+- [ ] Add headlight interaction with fog
+
+---
+
+## Asset Store Packages Installed (Local Only - Not in Repo)
+
+These need to be imported if setting up fresh:
+- **AllSky Free** - Skybox pack (using Cold Night)
+- **Volumetric Fog & Mist 2** - Kronnect fog system (paid)
+- **Asphalt Materials** - Road textures (using Asphalt_material_14)
+- **Yughues Free Pavement Materials** - Alternative textures
+- **Yughues Free Ground Materials** - Ground textures
+- **TextMesh Pro** - UI text
+
+**Important:** After importing asset store packages, run:
+`Edit > Rendering > Materials > Convert Built-in Materials to URP`
 
 ---
 
@@ -66,21 +89,29 @@ Assets/
 │   │   ├── RoadPropData.cs         # ScriptableObject for prop definitions
 │   │   ├── RoadPropPool.cs         # ScriptableObject for prop collections
 │   │   └── RoadPropSpawner.cs      # Spawns props on road segments
-│   ├── UI/
-│   │   ├── StaminaUI.cs
-│   │   ├── HealthUI.cs
-│   │   ├── HungerUI.cs
-│   │   ├── ThirstUI.cs
-│   │   ├── SanityUI.cs
-│   │   ├── InventoryUI.cs          # Updated with drag-and-drop
-│   │   ├── InventorySlotUI.cs      # Updated with drag interfaces
-│   │   ├── HotbarUI.cs
-│   │   ├── HotbarSlotUIComponent.cs # New - MonoBehaviour for hotbar drops
-│   │   └── ContextMenuBuilder.cs   # New - Builds compact context menu
-│   └── Input/
-│       └── InputSystem_Actions.cs (generated)
+│   └── UI/
+│       ├── StaminaUI.cs
+│       ├── HealthUI.cs
+│       ├── HungerUI.cs
+│       ├── ThirstUI.cs
+│       ├── SanityUI.cs
+│       ├── InventoryUI.cs
+│       ├── InventorySlotUI.cs
+│       ├── HotbarUI.cs
+│       ├── HotbarSlotUIComponent.cs
+│       └── ContextMenuBuilder.cs
+├── Editor/
+│   ├── SkyboxSetup.cs              # Skybox selection tool
+│   └── VolumetricFog2Setup.cs      # Fog setup tool
+├── Materials/
+│   └── RoadLineWhite.mat           # White URP material for road lines
 ├── Settings/
-│   └── RoadConfig.asset           # Road configuration
+│   ├── RoadConfig.asset            # Road configuration
+│   ├── HorrorFogProfile.asset      # Fog settings for horror atmosphere
+│   ├── PC_Renderer.asset           # URP renderer (with SSAO)
+│   └── PC_RPAsset.asset            # URP pipeline asset
+├── Prefabs/
+│   └── RoadSegment_Straight.prefab # Road segment with asphalt + white lines
 └── Scenes/
     └── SampleScene.unity
 
@@ -91,7 +122,8 @@ Documentation/
 ├── devlog-004-health-system.md
 ├── devlog-005-survival-systems.md
 ├── devlog-006-inventory-system.md
-└── SESSION-STATUS.md (this file)
+├── devlog-010-road-textures-fog.md
+└── session-status.md (this file)
 ```
 
 ---
@@ -103,6 +135,17 @@ Documentation/
 2. Segments spawn ahead of player, despawn behind
 3. Each segment has entry/exit connection points for seamless joining
 4. **RoadPropSpawner** listens for new segments and places props
+
+### Current Road Prefab
+`RoadSegment_Straight.prefab`:
+- **RoadSurface** - Asphalt_material_14 (realistic highway texture)
+- **CenterLine** - RoadLineWhite.mat (yellow center line)
+- **LaneLine_R1/L1** - RoadLineWhite.mat (white lane markers)
+- **EdgeLine_L/R** - RoadLineWhite.mat (white edge lines)
+- Entry/Exit points for segment chaining
+- Prop spawn points (4 per segment)
+- Event spawn point (1 per segment)
+- Item spawn points (2 per segment)
 
 ### Road Segment Setup
 1. Create empty GameObject
@@ -116,6 +159,30 @@ Documentation/
 2. Create `RoadPropPool` asset with prop collection
 3. Add `RoadPropSpawner` to scene
 4. Assign RoadGenerator and Prop Pools
+
+---
+
+## Fog System
+
+### Setup
+Use menu: `Streets > Quick Setup Horror Fog` or `Streets > Setup Volumetric Fog 2`
+
+### HorrorFogProfile Settings
+- White fog color (albedo: 1,1,1,1)
+- Density: 0.6
+- Height: 15m (low-lying)
+- Vertical offset: -2m
+- Max distance: 300m
+- Covers 600m of road
+
+---
+
+## Skybox System
+
+### Setup
+Use menu: `Streets > Quick Apply Cold Night Skybox` or `Streets > Setup Skybox`
+
+Currently using AllSky Free "Cold Night" skybox.
 
 ---
 
@@ -175,6 +242,12 @@ If starting fresh or verifying setup:
 - [ ] Road segment prefabs assigned to RoadGenerator
 - [ ] Prop pools assigned to RoadPropSpawner
 
+### Fog System
+- [ ] Import Volumetric Fog & Mist 2 (including URP package inside bundle)
+- [ ] Run `Streets > Quick Setup Horror Fog`
+- [ ] VolumetricFogManager in scene
+- [ ] VolumetricFog volume following player
+
 ### Component References
 - [ ] FirstPersonController → Camera Transform assigned
 - [ ] FirstPersonController → Ground Mask set to "Ground" layer
@@ -185,12 +258,12 @@ If starting fresh or verifying setup:
 - [ ] SanitySystem → HealthSystem assigned
 - [ ] InventorySystem → All survival systems assigned
 - [ ] HotbarSystem → InventorySystem assigned
-- [ ] RoadGenerator → Player assigned
+- [ ] RoadGenerator → Player assigned, Segment Prefabs array populated
 - [ ] RoadPropSpawner → RoadGenerator assigned
 
 ### Ground
 - [ ] "Ground" layer created
-- [ ] Road segments set to Ground layer
+- [ ] Road segments set to Ground layer (Layer 6)
 
 ### UI (Canvas)
 - [ ] StaminaUI with fill bar
@@ -205,7 +278,7 @@ If starting fresh or verifying setup:
 
 ## Quick Resume Commands
 
-```
+```bash
 # Check git status
 git status
 
@@ -215,6 +288,14 @@ git log --oneline -10
 # Pull latest changes
 git pull
 ```
+
+---
+
+## Known Issues / Notes
+
+- **Curve segments disabled**: RoadGenerator weights set to 100% straight (curveWeight=0, specialWeight=0) until curve prefabs are created
+- **Asset store materials**: May show pink until converted to URP via Edit > Rendering > Materials > Convert Built-in Materials to URP
+- **Fog follows scene origin**: May need to parent fog volume to player for it to follow
 
 ---
 
