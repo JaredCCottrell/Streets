@@ -15,9 +15,9 @@ namespace Streets.Road
         [SerializeField] private float checkInterval = 0.5f;
 
         [Header("Segment Weights")]
-        [SerializeField] private float straightWeight = 70f;
-        [SerializeField] private float curveWeight = 20f;
-        [SerializeField] private float specialWeight = 10f;
+        [SerializeField] private float straightWeight = 100f;
+        [SerializeField] private float curveWeight = 0f;
+        [SerializeField] private float specialWeight = 0f;
 
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo = true;
