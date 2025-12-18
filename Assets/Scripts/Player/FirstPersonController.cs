@@ -17,6 +17,10 @@ namespace Streets.Player
         [SerializeField] private float groundCheckDistance = 0.4f;
         [SerializeField] private LayerMask groundMask;
 
+        [Header("Jump Settings")]
+        [SerializeField] private bool jumpEnabled = true;
+        [SerializeField] private float jumpHeight = 1.5f;
+
         [Header("Look Settings")]
         [SerializeField] private float mouseSensitivity = 100f;
         [SerializeField] private float maxLookAngle = 90f;
@@ -64,6 +68,7 @@ namespace Streets.Player
         public bool IsSprinting => isSprinting;
         public bool IsGrounded => isGrounded;
         public bool IsMoving => moveInput.sqrMagnitude > 0.01f;
+        public bool JumpEnabled { get => jumpEnabled; set => jumpEnabled = value; }
 
         private void Awake()
         {
@@ -86,6 +91,7 @@ namespace Streets.Player
             inputActions.Player.Look.canceled += OnLook;
             inputActions.Player.Sprint.performed += OnSprintPressed;
             inputActions.Player.Sprint.canceled += OnSprintReleased;
+            inputActions.Player.Jump.performed += OnJump;
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -99,6 +105,7 @@ namespace Streets.Player
             inputActions.Player.Look.canceled -= OnLook;
             inputActions.Player.Sprint.performed -= OnSprintPressed;
             inputActions.Player.Sprint.canceled -= OnSprintReleased;
+            inputActions.Player.Jump.performed -= OnJump;
             inputActions.Disable();
 
             Cursor.lockState = CursorLockMode.None;
@@ -255,6 +262,14 @@ namespace Streets.Player
         private void OnSprintReleased(InputAction.CallbackContext context)
         {
             isSprinting = false;
+        }
+
+        private void OnJump(InputAction.CallbackContext context)
+        {
+            if (jumpEnabled && isGrounded)
+            {
+                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            }
         }
 
         // Public methods for external systems

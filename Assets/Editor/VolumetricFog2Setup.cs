@@ -56,6 +56,86 @@ namespace Streets.Editor
             ConfigureHorrorFog();
         }
 
+        [MenuItem("Streets/Create Local Fog Prefab")]
+        public static void CreateLocalFogPrefab()
+        {
+            // Create fog volume
+            GameObject fogGO = VolumetricFogManager.CreateFogVolume("LocalFog");
+            VolumetricFog fog = fogGO.GetComponent<VolumetricFog>();
+
+            // Configure for small local area
+            fogGO.transform.position = Vector3.zero;
+            fogGO.transform.localScale = new Vector3(20, 10, 20);
+
+            // Load horror profile or leave default
+            string profilePath = "Assets/Settings/HorrorFogProfile.asset";
+            VolumetricFogProfile profile = AssetDatabase.LoadAssetAtPath<VolumetricFogProfile>(profilePath);
+            if (profile != null)
+            {
+                fog.profile = profile;
+            }
+
+            // Save as prefab
+            if (!AssetDatabase.IsValidFolder("Assets/Prefabs"))
+            {
+                AssetDatabase.CreateFolder("Assets", "Prefabs");
+            }
+
+            string prefabPath = "Assets/Prefabs/LocalFog.prefab";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath) != null)
+            {
+                AssetDatabase.DeleteAsset(prefabPath);
+            }
+
+            PrefabUtility.SaveAsPrefabAsset(fogGO, prefabPath);
+            Object.DestroyImmediate(fogGO);
+
+            AssetDatabase.Refresh();
+            Debug.Log($"Local fog prefab created at {prefabPath}");
+
+            Selection.activeObject = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        }
+
+        [MenuItem("Streets/Create Road Fog Prefab")]
+        public static void CreateRoadFogPrefab()
+        {
+            // Create fog volume
+            GameObject fogGO = VolumetricFogManager.CreateFogVolume("RoadFog");
+            VolumetricFog fog = fogGO.GetComponent<VolumetricFog>();
+
+            // Configure for road coverage
+            fogGO.transform.position = new Vector3(0, 5, 100);
+            fogGO.transform.localScale = new Vector3(80, 25, 600);
+
+            // Load or create horror profile
+            string profilePath = "Assets/Settings/HorrorFogProfile.asset";
+            VolumetricFogProfile profile = AssetDatabase.LoadAssetAtPath<VolumetricFogProfile>(profilePath);
+            if (profile != null)
+            {
+                fog.profile = profile;
+            }
+
+            // Save as prefab
+            if (!AssetDatabase.IsValidFolder("Assets/Prefabs"))
+            {
+                AssetDatabase.CreateFolder("Assets", "Prefabs");
+            }
+
+            string prefabPath = "Assets/Prefabs/RoadFog.prefab";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath) != null)
+            {
+                AssetDatabase.DeleteAsset(prefabPath);
+            }
+
+            PrefabUtility.SaveAsPrefabAsset(fogGO, prefabPath);
+            Object.DestroyImmediate(fogGO);
+
+            AssetDatabase.Refresh();
+            Debug.Log($"Road fog prefab created at {prefabPath}");
+
+            Selection.activeObject = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        }
+
         private static void CreateFogSystem()
         {
             // Create manager if needed
