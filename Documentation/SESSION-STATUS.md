@@ -1,6 +1,6 @@
 # Streets - Development Session Status
 
-**Last Updated:** December 16, 2024
+**Last Updated:** December 18, 2024
 
 ---
 
@@ -32,8 +32,14 @@
 - [x] **Horror fog profile (HorrorFogProfile.asset)**
 - [x] **Skybox setup tools (SkyboxSetup.cs editor window)**
 - [x] **AllSky Free integration (Cold Night skybox)**
+- [x] **UI scaling fixes (Scale With Screen Size for all canvases)**
+- [x] **Inventory panel resolution-independent positioning**
+- [x] **Details panel layout fix (now sibling of inventory panel)**
+- [x] **Custom stamina bar with lung sprites**
 
 ### Next Up
+- [ ] Create custom sprites for other bars (health, hunger, thirst, sanity)
+- [ ] Apply sprite-based bar system to all survival meters
 - [ ] Create prop prefabs (guardrails, signs, abandoned cars, streetlights)
 - [ ] Create event/encounter system (harmless + harmful)
 - [ ] Implement checkpoint system for Normal mode
