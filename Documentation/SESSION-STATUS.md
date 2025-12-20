@@ -1,6 +1,6 @@
 # Streets - Development Session Status
 
-**Last Updated:** December 18, 2024
+**Last Updated:** December 19, 2024
 
 ---
 
@@ -36,10 +36,14 @@
 - [x] **Inventory panel resolution-independent positioning**
 - [x] **Details panel layout fix (now sibling of inventory panel)**
 - [x] **Custom stamina bar with lung sprites**
+- [x] **Custom sanity bar with brain sprites (alpha pulse when insane)**
+- [x] **Debug sanity controls (G/H keys in editor)**
 
 ### Next Up
-- [ ] Create custom sprites for other bars (health, hunger, thirst, sanity)
-- [ ] Apply sprite-based bar system to all survival meters
+- [ ] Create custom sprites for health bar (heart sprites)
+- [ ] Create custom sprites for hunger bar (stomach sprites)
+- [ ] Create custom sprites for thirst bar (water drop sprites)
+- [ ] Apply sprite-based bar system to remaining survival meters
 - [ ] Create prop prefabs (guardrails, signs, abandoned cars, streetlights)
 - [ ] Create event/encounter system (harmless + harmful)
 - [ ] Implement checkpoint system for Normal mode

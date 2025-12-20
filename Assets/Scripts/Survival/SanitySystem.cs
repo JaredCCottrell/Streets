@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Streets.Survival
 {
@@ -43,6 +44,17 @@ namespace Streets.Survival
         private void Update()
         {
             HandleInsanity();
+
+            #if UNITY_EDITOR
+            // Debug: Press G to lose sanity, H to restore
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.gKey.wasPressedThisFrame)
+                    LoseSanity(10f);
+                if (Keyboard.current.hKey.wasPressedThisFrame)
+                    RestoreSanity(10f);
+            }
+            #endif
         }
 
         private void HandleInsanity()

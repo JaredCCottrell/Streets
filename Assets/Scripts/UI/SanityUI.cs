@@ -8,14 +8,12 @@ namespace Streets.UI
     {
         [SerializeField] private SanitySystem sanitySystem;
         [SerializeField] private Image sanityFill;
-
-        [Header("Color Settings")]
-        [SerializeField] private Color saneColor = new Color(0.8f, 0.4f, 0.9f); // Purple
-        [SerializeField] private Color lowColor = new Color(0.4f, 0.1f, 0.5f); // Dark purple
-        [SerializeField] private Color insaneColor = Color.red;
+        [SerializeField] private Image sanityBackground;
 
         [Header("Insane Effect")]
         [SerializeField] private float pulseSpeed = 3f;
+        [SerializeField] private float minAlpha = 0.5f;
+        [SerializeField] private float maxAlpha = 1f;
         private float pulseTimer;
 
         private void OnEnable()
@@ -48,6 +46,13 @@ namespace Streets.UI
             {
                 PulseInsaneEffect();
             }
+            else if (sanityFill != null)
+            {
+                // Reset to full alpha when not insane
+                Color c = sanityFill.color;
+                c.a = 1f;
+                sanityFill.color = c;
+            }
         }
 
         private void UpdateSanityBar(float current, float max)
@@ -57,11 +62,6 @@ namespace Streets.UI
             if (sanityFill != null)
             {
                 sanityFill.fillAmount = percent;
-
-                if (!sanitySystem.IsInsane)
-                {
-                    sanityFill.color = Color.Lerp(lowColor, saneColor, percent);
-                }
             }
         }
 
@@ -71,7 +71,11 @@ namespace Streets.UI
 
             pulseTimer += Time.deltaTime * pulseSpeed;
             float pulse = (Mathf.Sin(pulseTimer) + 1f) / 2f;
-            sanityFill.color = Color.Lerp(lowColor, insaneColor, pulse);
+            float alpha = Mathf.Lerp(minAlpha, maxAlpha, pulse);
+
+            Color c = sanityFill.color;
+            c.a = alpha;
+            sanityFill.color = c;
         }
     }
 }
