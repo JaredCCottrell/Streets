@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbd040f575f843d45b45dcb320a655b5, type: 3}
+  m_Name: Test_ShadowConversation
+  m_EditorClassIdentifier: Assembly-CSharp::Streets.Dialogue.DialogueData
+  speakerName: Shadow NPC
+  speakerColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  lines:
+  - text: You shouldn't be here, traveler...
+    displayDuration: 0
+    choices: []
+  - text: Tell me... why do you walk this cursed road?
+    displayDuration: 0
+    choices:
+    - choiceText: I'm searching for the truth.
+      sanityChange: 5
+      jumpToLine: -1
+      endsDialogue: 0
+      responseText: Truth... yes. The road reveals all, in time.
+    - choiceText: I don't know. I just... ended up here.
+      sanityChange: 0
+      jumpToLine: -1
+      endsDialogue: 0
+      responseText: None of us choose this path. It chooses us.
+    - choiceText: Get out of my way.
+      sanityChange: -10
+      jumpToLine: 3
+      endsDialogue: 0
+      responseText: Hostility... the road will remember this.
+  - text: Keep walking. But beware... not all shadows are as kind as I.
+    displayDuration: 0
+    choices: []
+  - text: We will meet again, traveler. The road ensures it.
+    displayDuration: 0
+    choices: []
+  completionSanityChange: 0
+  itemDropPrefab: {fileID: 0}

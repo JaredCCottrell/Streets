@@ -1,6 +1,6 @@
 # Streets - Development Session Status
 
-**Last Updated:** December 19, 2024
+**Last Updated:** December 22, 2024
 
 ---
 
@@ -38,18 +38,31 @@
 - [x] **Custom stamina bar with lung sprites**
 - [x] **Custom sanity bar with brain sprites (alpha pulse when insane)**
 - [x] **Debug sanity controls (G/H keys in editor)**
+- [x] **Event system architecture (EventData, EventPool, EventManager)**
+- [x] **Sanity-based event difficulty scaling**
+- [x] **Event category system (Atmospheric, Creature, Obstacle, Apparition)**
+- [x] **Overlapping events support (Atmospheric + other categories)**
+- [x] **Chance-based event triggering with sanity influence**
+- [x] **Dialogue system (DialogueData, DialogueManager, DialogueUI)**
+- [x] **Dialogue choices with sanity consequences**
+- [x] **Time pause during dialogue**
+- [x] **DialogueEntity for NPC interactions**
+- [x] **ShadowFigure NPC (black body, glowing white eyes)**
+- [x] **Editor tools (DialogueUIBuilder, ShadowFigureBuilder)**
+- [x] **NPCSpawnPoint for random NPC spawning**
+- [x] **Test dialogue with branching choices**
 
 ### Next Up
+- [ ] Design main quest structure
+- [ ] Create opening scene (grandfather's house)
+- [ ] Create static intro road section
+- [ ] Implement transition to endless road
+- [ ] Create main quest NPCs and dialogues
 - [ ] Create custom sprites for health bar (heart sprites)
 - [ ] Create custom sprites for hunger bar (stomach sprites)
 - [ ] Create custom sprites for thirst bar (water drop sprites)
-- [ ] Apply sprite-based bar system to remaining survival meters
 - [ ] Create prop prefabs (guardrails, signs, abandoned cars, streetlights)
-- [ ] Create event/encounter system (harmless + harmful)
-- [ ] Implement checkpoint system for Normal mode
 - [ ] Add curve road segments (SlightLeft, SlightRight prefabs)
-- [ ] Fine-tune fog density and visibility
-- [ ] Add headlight interaction with fog
 
 ---
 
@@ -99,6 +112,11 @@ Assets/
 │   │   ├── RoadPropData.cs         # ScriptableObject for prop definitions
 │   │   ├── RoadPropPool.cs         # ScriptableObject for prop collections
 │   │   └── RoadPropSpawner.cs      # Spawns props on road segments
+│   ├── Events/
+│   │   ├── EventCategory.cs        # Enums for event categories & difficulty
+│   │   ├── EventData.cs            # ScriptableObject for event definitions
+│   │   ├── EventPool.cs            # ScriptableObject for event collections
+│   │   └── EventManager.cs         # Spawns/manages events based on sanity
 │   └── UI/
 │       ├── StaminaUI.cs
 │       ├── HealthUI.cs
@@ -193,6 +211,41 @@ Use menu: `Streets > Quick Setup Horror Fog` or `Streets > Setup Volumetric Fog 
 Use menu: `Streets > Quick Apply Cold Night Skybox` or `Streets > Setup Skybox`
 
 Currently using AllSky Free "Cold Night" skybox.
+
+---
+
+## Event System
+
+### How It Works
+1. **RoadSegment** has a `canTriggerEvent` flag (default true)
+2. When player enters a segment, **EventManager** rolls for trigger chance
+3. Trigger chance increases as sanity drops (40% base + 50% of missing sanity)
+4. If triggered, **EventPool** selects events weighted by sanity:
+   - High sanity = Harmless/Unsettling events
+   - Low sanity = Terrifying/Nightmare events
+5. Events can overlap by category (Atmospheric + Creature, etc.)
+
+### Event Categories
+| Category | Description | Overlaps With |
+|----------|-------------|---------------|
+| Atmospheric | Fog, sounds, flickering lights | Everything |
+| Creature | Hostile entities, stalkers | Atmospheric |
+| Obstacle | Roadblocks, car pile-ups | Atmospheric |
+| Apparition | Figures, shadows, hallucinations | Atmospheric, Creature |
+
+### Difficulty Scaling (by Sanity)
+| Sanity | Max Event Difficulty |
+|--------|---------------------|
+| 100-75% | Unsettling |
+| 75-50% | Dangerous |
+| 50-25% | Terrifying |
+| 25-0% | Nightmare |
+
+### Setup
+1. Create `EventData` assets: `Assets > Create > Streets > Events > Event Data`
+2. Create `EventPool` asset: `Assets > Create > Streets > Events > Event Pool`
+3. Add events to the pool, set base trigger chance
+4. Add `EventManager` to scene, assign RoadGenerator + SanitySystem + EventPool
 
 ---
 

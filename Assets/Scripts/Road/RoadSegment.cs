@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Streets.Road
@@ -18,6 +19,14 @@ namespace Streets.Road
         [SerializeField] private Transform[] eventSpawnPoints;
         [SerializeField] private Transform[] itemSpawnPoints;
 
+        [Header("Event Settings")]
+        [Tooltip("If true, this segment can trigger events when the player enters")]
+        [SerializeField] private bool canTriggerEvent = true;
+
+        [Tooltip("Override trigger chance for this segment (-1 = use pool default)")]
+        [Range(-1f, 1f)]
+        [SerializeField] private float triggerChanceOverride = -1f;
+
         public float SegmentLength => segmentLength;
         public float RoadWidth => roadWidth;
         public SegmentType Type => segmentType;
@@ -26,10 +35,13 @@ namespace Streets.Road
         public Transform[] PropSpawnPoints => propSpawnPoints;
         public Transform[] EventSpawnPoints => eventSpawnPoints;
         public Transform[] ItemSpawnPoints => itemSpawnPoints;
+        public bool CanTriggerEvent => canTriggerEvent;
+        public float TriggerChanceOverride => triggerChanceOverride;
 
         // Runtime state
         private int segmentIndex;
         private bool hasBeenVisited;
+        private bool eventTriggered;
 
         public int SegmentIndex
         {
@@ -41,6 +53,59 @@ namespace Streets.Road
         {
             get => hasBeenVisited;
             set => hasBeenVisited = value;
+        }
+
+        public bool EventTriggered
+        {
+            get => eventTriggered;
+            set => eventTriggered = value;
+        }
+
+        // Events
+        public event Action<RoadSegment> OnPlayerEntered;
+        public event Action<RoadSegment> OnPlayerExited;
+
+        /// <summary>
+        /// Called when player enters this segment. Fires OnPlayerEntered event.
+        /// </summary>
+        public void NotifyPlayerEntered()
+        {
+            if (!hasBeenVisited)
+            {
+                hasBeenVisited = true;
+                OnPlayerEntered?.Invoke(this);
+            }
+        }
+
+        /// <summary>
+        /// Called when player exits this segment. Fires OnPlayerExited event.
+        /// </summary>
+        public void NotifyPlayerExited()
+        {
+            OnPlayerExited?.Invoke(this);
+        }
+
+        /// <summary>
+        /// Get a random event spawn point, or segment center if none defined
+        /// </summary>
+        public Transform GetRandomEventSpawnPoint()
+        {
+            if (eventSpawnPoints != null && eventSpawnPoints.Length > 0)
+            {
+                var validPoints = System.Array.FindAll(eventSpawnPoints, p => p != null);
+                if (validPoints.Length > 0)
+                    return validPoints[UnityEngine.Random.Range(0, validPoints.Length)];
+            }
+            return transform;
+        }
+
+        /// <summary>
+        /// Reset runtime state (called when segment is recycled)
+        /// </summary>
+        public void ResetState()
+        {
+            hasBeenVisited = false;
+            eventTriggered = false;
         }
 
         private void OnDrawGizmos()

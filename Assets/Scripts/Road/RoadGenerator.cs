@@ -26,6 +26,7 @@ namespace Streets.Road
         private LinkedList<RoadSegment> activeSegments = new LinkedList<RoadSegment>();
         private int nextSegmentIndex = 0;
         private float lastCheckTime;
+        private RoadSegment lastKnownSegment;
 
         // Segment pools by type
         private Dictionary<SegmentType, List<RoadSegment>> segmentPools = new Dictionary<SegmentType, List<RoadSegment>>();
@@ -108,6 +109,21 @@ namespace Streets.Road
             // Check if we need to spawn more segments ahead
             if (currentSegment != null)
             {
+                // Check if player entered a new segment
+                if (currentSegment != lastKnownSegment)
+                {
+                    // Notify the old segment that player exited
+                    if (lastKnownSegment != null)
+                    {
+                        lastKnownSegment.NotifyPlayerExited();
+                    }
+
+                    // Notify the new segment that player entered
+                    currentSegment.NotifyPlayerEntered();
+                    OnPlayerEnteredSegment?.Invoke(currentSegment);
+                    lastKnownSegment = currentSegment;
+                }
+
                 int segmentsAheadOfPlayer = CountSegmentsAhead(currentSegment);
 
                 while (segmentsAheadOfPlayer < segmentsAhead)
@@ -230,6 +246,7 @@ namespace Streets.Road
         private void ReturnToPool(RoadSegment segment)
         {
             segment.gameObject.SetActive(false);
+            segment.ResetState();
 
             if (segmentPools.TryGetValue(segment.Type, out List<RoadSegment> pool))
             {
