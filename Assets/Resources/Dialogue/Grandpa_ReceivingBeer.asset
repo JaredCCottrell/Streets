@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbd040f575f843d45b45dcb320a655b5, type: 3}
+  m_Name: Grandpa_ReceivingBeer
+  m_EditorClassIdentifier: Assembly-CSharp::Streets.Dialogue.DialogueData
+  speakerName: Grandpa
+  speakerColor: {r: 0.8, g: 0.7, b: 0.5, a: 1}
+  lines:
+  - text: Oh! A cold one!
+    displayDuration: 0
+    choices: []
+  - text: '*takes the beer*'
+    displayDuration: 0
+    choices: []
+  - text: You're a lifesaver, kiddo. A real lifesaver.
+    displayDuration: 0
+    choices: []
+  - text: '*cracks open the beer*'
+    displayDuration: 0
+    choices: []
+  - text: Ahhhh... that hits the spot.
+    displayDuration: 0
+    choices: []
+  - text: You know, you should get going. It's getting late.
+    displayDuration: 0
+    choices: []
+  - text: Your parents will be wondering where you are.
+    displayDuration: 0
+    choices: []
+  completionSanityChange: 0
+  itemDropPrefab: {fileID: 0}

@@ -138,6 +138,9 @@ namespace Streets.UI
             // Add Button component
             Button button = buttonObj.AddComponent<Button>();
 
+            // IMPORTANT: Set the target graphic so button responds to clicks
+            button.targetGraphic = buttonImage;
+
             // Setup button colors
             ColorBlock colors = button.colors;
             colors.normalColor = buttonNormalColor;
@@ -186,22 +189,27 @@ namespace Streets.UI
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            // Auto-rebuild in editor when values change
-            if (!Application.isPlaying && transform.childCount > 0)
+            // Disabled auto-rebuild - it breaks InventoryUI button references
+            // Use the context menu "Build Context Menu" to manually rebuild if needed
+        }
+
+        private void Reset()
+        {
+            // Don't modify prefab assets directly
+            if (UnityEditor.PrefabUtility.IsPartOfPrefabAsset(gameObject))
+                return;
+
+            // Only build on first creation (Reset), not on every validate
+            if (transform.childCount == 0)
             {
                 UnityEditor.EditorApplication.delayCall += () =>
                 {
-                    if (this != null)
+                    if (this != null && !UnityEditor.PrefabUtility.IsPartOfPrefabAsset(gameObject))
                     {
                         BuildContextMenu();
                     }
                 };
             }
-        }
-
-        private void Reset()
-        {
-            BuildContextMenu();
         }
 #endif
     }

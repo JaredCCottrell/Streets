@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Streets.Survival;
 
 namespace Streets.Dialogue
 {
@@ -15,7 +14,6 @@ namespace Streets.Dialogue
 
         [Header("References")]
         [SerializeField] private DialogueUI dialogueUI;
-        [SerializeField] private SanitySystem sanitySystem;
 
         [Header("Settings")]
         [SerializeField] private bool pauseTimeOnDialogue = true;
@@ -25,6 +23,7 @@ namespace Streets.Dialogue
         // State
         private DialogueData currentDialogue;
         private DialogueEntity currentEntity;
+        private Action<bool> currentCallback;
         private int currentLineIndex;
         private bool isDialogueActive;
         private bool waitingForChoice;
@@ -98,9 +97,23 @@ namespace Streets.Dialogue
         /// </summary>
         public void StartDialogue(DialogueData dialogue, DialogueEntity entity = null)
         {
+            StartDialogueInternal(dialogue, entity, null);
+        }
+
+        /// <summary>
+        /// Start a dialogue with a completion callback
+        /// </summary>
+        public void StartDialogue(DialogueData dialogue, Action<bool> onComplete)
+        {
+            StartDialogueInternal(dialogue, null, onComplete);
+        }
+
+        private void StartDialogueInternal(DialogueData dialogue, DialogueEntity entity, Action<bool> onComplete)
+        {
             if (dialogue == null || dialogue.LineCount == 0)
             {
                 Debug.LogWarning("[DialogueManager] Cannot start empty dialogue");
+                onComplete?.Invoke(false);
                 return;
             }
 
@@ -112,6 +125,7 @@ namespace Streets.Dialogue
 
             currentDialogue = dialogue;
             currentEntity = entity;
+            currentCallback = onComplete;
             currentLineIndex = 0;
             isDialogueActive = true;
             waitingForChoice = false;
@@ -177,15 +191,6 @@ namespace Streets.Dialogue
 
             var choice = line.Choices[choiceIndex];
             waitingForChoice = false;
-
-            // Apply sanity change
-            if (sanitySystem != null && choice.SanityChange != 0)
-            {
-                if (choice.SanityChange > 0)
-                    sanitySystem.RestoreSanity(choice.SanityChange);
-                else
-                    sanitySystem.LoseSanity(-choice.SanityChange);
-            }
 
             OnChoiceMade?.Invoke(choice);
 
@@ -263,15 +268,6 @@ namespace Streets.Dialogue
             // Apply completion rewards (only if not skipped)
             if (!skipped && currentDialogue != null)
             {
-                // Sanity change
-                if (sanitySystem != null && currentDialogue.CompletionSanityChange != 0)
-                {
-                    if (currentDialogue.CompletionSanityChange > 0)
-                        sanitySystem.RestoreSanity(currentDialogue.CompletionSanityChange);
-                    else
-                        sanitySystem.LoseSanity(-currentDialogue.CompletionSanityChange);
-                }
-
                 // Item drop
                 if (currentDialogue.ItemDropPrefab != null && currentEntity != null)
                 {
@@ -303,12 +299,16 @@ namespace Streets.Dialogue
                 currentEntity.OnDialogueComplete(skipped);
             }
 
+            // Call callback
+            currentCallback?.Invoke(skipped);
+
             OnDialogueEnded?.Invoke();
 
             Debug.Log($"[DialogueManager] Dialogue ended (skipped: {skipped})");
 
             currentDialogue = null;
             currentEntity = null;
+            currentCallback = null;
         }
 
         /// <summary>

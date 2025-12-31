@@ -5,17 +5,14 @@ namespace Streets.Inventory
     [CreateAssetMenu(fileName = "NewConsumable", menuName = "Streets/Items/Consumable")]
     public class ConsumableData : ItemData
     {
-        [Header("Survival Effects")]
+        [Header("Health Effects")]
         public float healthRestore;
-        public float hungerRestore;
-        public float thirstRestore;
-        public float sanityRestore;
-
-        [Header("Negative Effects")]
         public float healthDamage;
-        public float hungerDrain;
-        public float thirstDrain;
-        public float sanityDrain;
+
+        [Header("Intoxication")]
+        [Tooltip("Amount of intoxication added when consumed (0-100 scale)")]
+        [Range(0f, 50f)]
+        public float intoxicationAmount;
 
         private void OnValidate()
         {

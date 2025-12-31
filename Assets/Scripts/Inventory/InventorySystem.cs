@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using Streets.Survival;
+using Streets.Effects;
 
 namespace Streets.Inventory
 {
@@ -11,9 +12,6 @@ namespace Streets.Inventory
 
         [Header("Survival References")]
         [SerializeField] private HealthSystem healthSystem;
-        [SerializeField] private HungerSystem hungerSystem;
-        [SerializeField] private ThirstSystem thirstSystem;
-        [SerializeField] private SanitySystem sanitySystem;
 
         [Header("Item Dropping")]
         [SerializeField] private ItemPickup dropItemPrefab;
@@ -177,40 +175,24 @@ namespace Streets.Inventory
 
         private void ApplyConsumableEffects(ConsumableData consumable)
         {
-            // Positive effects
+            // Health effects
             if (consumable.healthRestore > 0 && healthSystem != null)
             {
                 healthSystem.Heal(consumable.healthRestore);
             }
-            if (consumable.hungerRestore > 0 && hungerSystem != null)
-            {
-                hungerSystem.Eat(consumable.hungerRestore);
-            }
-            if (consumable.thirstRestore > 0 && thirstSystem != null)
-            {
-                thirstSystem.Drink(consumable.thirstRestore);
-            }
-            if (consumable.sanityRestore > 0 && sanitySystem != null)
-            {
-                sanitySystem.RestoreSanity(consumable.sanityRestore);
-            }
-
-            // Negative effects
             if (consumable.healthDamage > 0 && healthSystem != null)
             {
                 healthSystem.TakeDamage(consumable.healthDamage);
             }
-            if (consumable.hungerDrain > 0 && hungerSystem != null)
+
+            // Intoxication effect
+            if (consumable.intoxicationAmount > 0)
             {
-                hungerSystem.SetHunger(hungerSystem.CurrentHunger - consumable.hungerDrain);
-            }
-            if (consumable.thirstDrain > 0 && thirstSystem != null)
-            {
-                thirstSystem.SetThirst(thirstSystem.CurrentThirst - consumable.thirstDrain);
-            }
-            if (consumable.sanityDrain > 0 && sanitySystem != null)
-            {
-                sanitySystem.LoseSanity(consumable.sanityDrain);
+                var intoxSystem = FindObjectOfType<IntoxicationSystem>();
+                if (intoxSystem != null)
+                {
+                    intoxSystem.AddIntoxication(consumable.intoxicationAmount);
+                }
             }
         }
 

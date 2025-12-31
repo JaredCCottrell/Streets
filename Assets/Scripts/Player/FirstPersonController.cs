@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Streets.Input;
-using Streets.Survival;
 using Streets.Inventory;
 using Streets.UI;
 
@@ -32,10 +31,6 @@ namespace Streets.Player
         [SerializeField] private float staminaRegenRate = 10f;
         [SerializeField] private float staminaRegenDelay = 1f;
         [SerializeField] [Range(0f, 1f)] private float minStaminaPercentToSprint = 0.25f;
-
-        [Header("Survival References")]
-        [SerializeField] private HungerSystem hungerSystem;
-        [SerializeField] private ThirstSystem thirstSystem;
 
         [Header("Inventory References")]
         [SerializeField] private InventorySystem inventorySystem;
@@ -84,6 +79,12 @@ namespace Streets.Player
 
         private void OnEnable()
         {
+            // Ensure inputActions is created (OnEnable can run before Awake with prefabs)
+            if (inputActions == null)
+            {
+                inputActions = new InputSystem_Actions();
+            }
+
             inputActions.Enable();
             inputActions.Player.Move.performed += OnMove;
             inputActions.Player.Move.canceled += OnMove;
@@ -204,10 +205,6 @@ namespace Streets.Player
         private void HandleStamina()
         {
             bool isActivelySprinting = isSprinting && IsMoving && canSprint;
-
-            // Notify survival systems of sprint state
-            hungerSystem?.SetSprinting(isActivelySprinting);
-            thirstSystem?.SetSprinting(isActivelySprinting);
 
             if (isActivelySprinting)
             {

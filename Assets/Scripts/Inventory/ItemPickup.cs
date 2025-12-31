@@ -1,49 +1,53 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Streets.Inventory
 {
+    /// <summary>
+    /// A pickup-able item in the world. Has gravity and can be picked up by the player.
+    /// When picked up, the item is held in front of the player until stored or used.
+    /// </summary>
+    [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(Collider))]
     public class ItemPickup : MonoBehaviour
     {
         [Header("Item Settings")]
         [SerializeField] private ItemData item;
         [SerializeField] private int quantity = 1;
 
-        [Header("Pickup Settings")]
-        [SerializeField] private float pickupRange = 2f;
-        [SerializeField] private Key pickupKey = Key.E;
-        [SerializeField] private bool autoPickup = false;
-        [SerializeField] private bool canPickupWhileMoving = true;
-
-        [Header("Physics (for dropped items)")]
-        [SerializeField] private float drag = 2f;
+        [Header("Physics")]
+        [SerializeField] private float mass = 1f;
+        [SerializeField] private float drag = 1f;
         [SerializeField] private float angularDrag = 2f;
 
-        [Header("Visual Feedback")]
-        [SerializeField] private float bobSpeed = 2f;
-        [SerializeField] private float bobHeight = 0.2f;
-        [SerializeField] private float rotateSpeed = 50f;
+        [Header("Interaction")]
+        [SerializeField] private float interactionRange = 2f;
 
-        private Vector3 startPosition;
-        private InventorySystem playerInventory;
-        private bool playerInRange;
         private Rigidbody rb;
-        private bool hasSettled;
-        private float settleCheckDelay = 0.5f;
-        private float settleTimer;
+        private Collider col;
+        private bool isBeingHeld = false;
 
         public ItemData Item => item;
         public int Quantity => quantity;
+        public bool IsBeingHeld => isBeingHeld;
 
-        private void Start()
+        private void Awake()
         {
-            startPosition = transform.position;
             rb = GetComponent<Rigidbody>();
+            col = GetComponent<Collider>();
 
-            // If no rigidbody, we're already settled (placed in editor)
-            if (rb == null)
+            SetupPhysics();
+        }
+
+        private void SetupPhysics()
+        {
+            if (rb != null)
             {
-                hasSettled = true;
+                rb.mass = mass;
+                rb.linearDamping = drag;
+                rb.angularDamping = angularDrag;
+                rb.useGravity = true;
+                rb.isKinematic = false;
+                rb.interpolation = RigidbodyInterpolation.Interpolate;
             }
         }
 
@@ -54,135 +58,85 @@ namespace Streets.Inventory
         {
             item = itemData;
             quantity = itemQuantity;
-            startPosition = transform.position;
-            pickupKey = Key.E;
+            SetupPhysics();
+        }
 
-            // Apply drag settings to help item settle faster
-            if (rb == null) rb = GetComponent<Rigidbody>();
+        /// <summary>
+        /// Called when player picks up this item to hold it
+        /// </summary>
+        public void OnPickedUp()
+        {
+            isBeingHeld = true;
+
+            // Disable physics while held
             if (rb != null)
             {
-                rb.linearDamping = drag;
-                rb.angularDamping = angularDrag;
-            }
-        }
-
-        private void Update()
-        {
-            // Debug: check if E is pressed at all
-            if (Keyboard.current[pickupKey].wasPressedThisFrame)
-            {
-                Debug.Log($"[ItemPickup] E pressed on {gameObject.name}. playerInRange={playerInRange}, item={item?.itemName ?? "NULL"}");
-            }
-
-            // Check if dropped item has settled
-            if (!hasSettled)
-            {
-                CheckIfSettled();
-            }
-            else
-            {
-                AnimatePickup();
-            }
-
-            bool canPickup = hasSettled || canPickupWhileMoving;
-            if (playerInRange && canPickup && !autoPickup && Keyboard.current[pickupKey].wasPressedThisFrame)
-            {
-                Debug.Log($"[ItemPickup] Attempting pickup!");
-                TryPickup();
-            }
-        }
-
-        private void CheckIfSettled()
-        {
-            if (rb == null)
-            {
-                hasSettled = true;
-                return;
-            }
-
-            settleTimer += Time.deltaTime;
-
-            // Wait a bit before checking velocity
-            if (settleTimer < settleCheckDelay) return;
-
-            // Check if nearly stopped
-            if (rb.linearVelocity.magnitude < 0.1f && rb.angularVelocity.magnitude < 0.1f)
-            {
-                // Item has settled - disable physics and start animating
-                hasSettled = true;
-                startPosition = transform.position;
-
-                // Make kinematic so animation works
                 rb.isKinematic = true;
+                rb.useGravity = false;
+            }
+
+            // Disable collider to prevent clipping issues
+            if (col != null)
+            {
+                col.enabled = false;
             }
         }
 
-        private void AnimatePickup()
+        /// <summary>
+        /// Called when player drops this item
+        /// </summary>
+        public void OnDropped(Vector3 force)
         {
-            // Bob up and down
-            float newY = startPosition.y + Mathf.Sin(Time.time * bobSpeed) * bobHeight;
-            transform.position = new Vector3(startPosition.x, newY, startPosition.z);
+            isBeingHeld = false;
 
-            // Rotate
-            transform.Rotate(Vector3.up, rotateSpeed * Time.deltaTime);
-        }
-
-        private void OnTriggerEnter(Collider other)
-        {
-            Debug.Log($"[ItemPickup] Trigger entered by: {other.name}, Tag: {other.tag}");
-
-            if (!other.CompareTag("Player"))
+            // Re-enable physics
+            if (rb != null)
             {
-                return;
+                rb.isKinematic = false;
+                rb.useGravity = true;
+                rb.AddForce(force, ForceMode.Impulse);
             }
 
-            playerInventory = other.GetComponent<InventorySystem>();
-            if (playerInventory == null)
+            // Re-enable collider
+            if (col != null)
             {
-                playerInventory = other.GetComponentInParent<InventorySystem>();
-            }
-
-            Debug.Log($"[ItemPickup] Player detected. InventorySystem found: {playerInventory != null}");
-
-            if (playerInventory != null)
-            {
-                playerInRange = true;
-
-                if (autoPickup && (hasSettled || canPickupWhileMoving))
-                {
-                    TryPickup();
-                }
+                col.enabled = true;
             }
         }
 
-        private void OnTriggerExit(Collider other)
+        /// <summary>
+        /// Called when the item is stored in inventory
+        /// </summary>
+        public void OnStored()
         {
-            if (other.CompareTag("Player"))
-            {
-                playerInRange = false;
-                playerInventory = null;
-            }
+            Destroy(gameObject);
         }
 
-        private void TryPickup()
+        /// <summary>
+        /// Called when the item is used while held
+        /// </summary>
+        public bool TryUse()
         {
-            Debug.Log($"[ItemPickup] TryPickup called. playerInventory={playerInventory != null}, item={item?.itemName ?? "null"}, quantity={quantity}");
-
-            if (playerInventory == null || item == null) return;
-
-            bool added = playerInventory.AddItem(item, quantity);
-            Debug.Log($"[ItemPickup] AddItem result: {added}");
-
-            if (added)
+            // Only consumables can be used directly
+            if (item is ConsumableData)
             {
-                Destroy(gameObject);
+                return true; // HeldItemSystem will handle the actual use
             }
+            return false;
+        }
+
+        /// <summary>
+        /// Check if this item can be used (consumed)
+        /// </summary>
+        public bool CanBeUsed()
+        {
+            return item is ConsumableData;
         }
 
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, pickupRange);
+            Gizmos.DrawWireSphere(transform.position, interactionRange);
         }
     }
 }

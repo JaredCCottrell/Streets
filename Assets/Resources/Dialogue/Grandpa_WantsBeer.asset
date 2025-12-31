@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbd040f575f843d45b45dcb320a655b5, type: 3}
+  m_Name: Grandpa_WantsBeer
+  m_EditorClassIdentifier: Assembly-CSharp::Streets.Dialogue.DialogueData
+  speakerName: Grandpa
+  speakerColor: {r: 0.8, g: 0.7, b: 0.5, a: 1}
+  lines:
+  - text: Hey there, kiddo! Perfect timing.
+    displayDuration: 0
+    choices: []
+  - text: Listen, could you do your old grandpa a favor?
+    displayDuration: 0
+    choices: []
+  - text: Grab me a cold beer from the fridge in the garage.
+    displayDuration: 0
+    choices: []
+  - text: I think I left the key somewhere in the bedroom... maybe the nightstand?
+    displayDuration: 0
+    choices: []
+  - text: These old bones ain't what they used to be.
+    displayDuration: 0
+    choices: []
+  completionSanityChange: 0
+  itemDropPrefab: {fileID: 0}

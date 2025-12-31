@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Streets.Core;
+using Streets.Inventory;
 
 namespace Streets.Road
 {
@@ -21,6 +23,11 @@ namespace Streets.Road
 
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo = true;
+
+        [Header("Scene Transition")]
+        [Tooltip("Restore player state from GameStateManager on scene load")]
+        [SerializeField] private bool restoreStateOnLoad = true;
+        [SerializeField] private InventorySystem inventorySystem;
 
         // Active segments
         private LinkedList<RoadSegment> activeSegments = new LinkedList<RoadSegment>();
@@ -46,6 +53,46 @@ namespace Streets.Road
         {
             InitializePools();
             GenerateInitialRoad();
+
+            // Restore player state from house scene if available
+            if (restoreStateOnLoad)
+            {
+                RestorePlayerState();
+            }
+        }
+
+        private void RestorePlayerState()
+        {
+            if (GameStateManager.Instance == null) return;
+            if (!GameStateManager.Instance.CompletedHouseIntro) return;
+
+            // Auto-find inventory reference if not assigned
+            if (player != null && inventorySystem == null)
+            {
+                inventorySystem = player.GetComponentInChildren<InventorySystem>();
+            }
+
+            // Fallback to FindObjectOfType if still null
+            if (inventorySystem == null)
+            {
+                inventorySystem = FindObjectOfType<InventorySystem>();
+            }
+
+            // Restore inventory
+            GameStateManager.Instance.RestoreInventory(inventorySystem);
+
+            // Restore player stats (health)
+            var state = GameStateManager.Instance.GetPlayerState();
+            if (player != null)
+            {
+                var healthSystem = player.GetComponentInChildren<Streets.Survival.HealthSystem>();
+                if (healthSystem != null)
+                {
+                    healthSystem.SetHealth(state.health);
+                }
+            }
+
+            Debug.Log("[RoadGenerator] Player state restored from house scene");
         }
 
         private void Update()
