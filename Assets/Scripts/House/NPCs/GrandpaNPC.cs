@@ -59,6 +59,16 @@ namespace Streets.House.NPCs
                 {
                     playerHeldItemSystem = playerObj.GetComponentInChildren<HeldItemSystem>();
                 }
+                Debug.Log($"[GrandpaNPC] Found player: {playerObj.name}");
+            }
+            else
+            {
+                Debug.LogWarning("[GrandpaNPC] No player found with tag 'Player'!");
+            }
+
+            if (DialogueManager.Instance == null)
+            {
+                Debug.LogWarning("[GrandpaNPC] No DialogueManager found in scene!");
             }
 
             if (animator == null)
@@ -76,6 +86,12 @@ namespace Streets.House.NPCs
             bool wasInRange = playerInRange;
             playerInRange = distance <= interactionRange;
 
+            // Debug when range state changes
+            if (playerInRange != wasInRange)
+            {
+                Debug.Log($"[GrandpaNPC] Player in range: {playerInRange} (distance: {distance:F2}, required: {interactionRange})");
+            }
+
             // Face player when in range
             if (playerInRange && facePlayer && !isInDialogue)
             {
@@ -85,8 +101,10 @@ namespace Streets.House.NPCs
             // Handle interaction
             if (playerInRange && !isInDialogue)
             {
-                if (UnityEngine.InputSystem.Keyboard.current.eKey.wasPressedThisFrame)
+                if (UnityEngine.InputSystem.Keyboard.current != null &&
+                    UnityEngine.InputSystem.Keyboard.current.eKey.wasPressedThisFrame)
                 {
+                    Debug.Log("[GrandpaNPC] E key pressed, handling interaction");
                     HandleInteraction();
                 }
             }
@@ -116,9 +134,12 @@ namespace Streets.House.NPCs
 
         private void StartDialogue()
         {
+            Debug.Log("[GrandpaNPC] StartDialogue called");
+
             if (DialogueManager.Instance == null)
             {
                 // Fallback if no dialogue manager
+                Debug.LogWarning("[GrandpaNPC] No DialogueManager - using fallback");
                 Debug.Log(GetFallbackDialogue());
                 return;
             }
@@ -126,6 +147,7 @@ namespace Streets.House.NPCs
             DialogueData dialogue = GetCurrentDialogue();
             if (dialogue != null)
             {
+                Debug.Log($"[GrandpaNPC] Starting dialogue: {dialogue.name}");
                 isInDialogue = true;
 
                 if (!hasBeenTalkedTo)
@@ -135,6 +157,10 @@ namespace Streets.House.NPCs
                 }
 
                 DialogueManager.Instance.StartDialogue(dialogue, OnDialogueComplete);
+            }
+            else
+            {
+                Debug.LogWarning("[GrandpaNPC] No dialogue asset assigned!");
             }
         }
 

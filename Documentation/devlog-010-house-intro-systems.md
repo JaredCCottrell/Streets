@@ -92,13 +92,28 @@ First objective NPC who asks for beer.
 - Fade transitions between scenes
 - Handles scene loading
 
-## Editor Tools (`Assets/Scripts/Editor/HouseItemCreator.cs`)
+## Editor Tools
+
+### HouseItemCreator (`Assets/Scripts/Editor/HouseItemCreator.cs`)
 
 **Menu Items:**
 - `Streets > Create House Items` - Creates beer and key items
 - `Streets > Create Grandpa NPC Assets` - Creates grandpa dialogue
 - `Streets > Create House Scene` - Creates scene with hierarchy
 - `Streets > Validate House Setup` - Checks setup completeness
+
+### DialogueUIBuilder (`Assets/Scripts/Editor/DialogueUIBuilder.cs`)
+
+**Menu Items:**
+- `Streets > Build Dialogue UI` - Creates complete dialogue UI canvas
+
+**Auto-creates:**
+- DialogueCanvas with ScreenSpaceOverlay
+- Speaker name panel with styled text
+- Dialogue text area
+- Continue indicator
+- Choice buttons (4 max)
+- Auto-wires to DialogueManager if present
 
 **Items Created:**
 - Beer (consumable, 25 intoxication)
@@ -142,15 +157,25 @@ Removed:
 ## Setup Checklist
 
 ### Player Setup
+- [ ] Tag player GameObject as "Player"
 - [ ] Add `HeldItemSystem` component
 - [ ] Add `IntoxicationSystem` component
 - [ ] Add `IntoxicationEffect` component
 - [ ] Assign camera references
 
+### Dialogue System Setup
+- [ ] Create empty GameObject named "DialogueManager"
+- [ ] Add `DialogueManager` component
+- [ ] Run `Streets > Build Dialogue UI` (auto-wires everything)
+
 ### House Scene Setup
 - [ ] Run `Streets > Create House Items`
 - [ ] Run `Streets > Create Grandpa NPC Assets`
 - [ ] Create Grandpa GameObject with `GrandpaNPC`
+- [ ] Assign dialogue assets to GrandpaNPC:
+  - `wantsBeerDialogue` → Grandpa_WantsBeer
+  - `receivingBeerDialogue` → Grandpa_ReceivingBeer
+  - `alreadyHasBeerDialogue` → Grandpa_AlreadyHasBeer
 - [ ] Place fridge with `Door` component (requiredKeyId: "key_fridge")
 - [ ] Place beer pickup inside fridge
 - [ ] Place fridge key pickup in bedroom
@@ -159,3 +184,15 @@ Removed:
 - [ ] Ensure Rigidbody component (useGravity: true)
 - [ ] Ensure Collider component
 - [ ] Assign ItemData reference
+
+## Troubleshooting
+
+### NPC Interaction Not Working
+1. Check player is tagged "Player"
+2. Check Console for `[GrandpaNPC] Found player:` or warnings
+3. Verify interaction range (default 3m, shown as yellow sphere in Scene view)
+
+### Dialogue Text Not Showing
+1. Ensure DialogueManager exists in scene
+2. Run `Streets > Build Dialogue UI` to create UI
+3. Check DialogueManager has DialogueUI reference assigned
